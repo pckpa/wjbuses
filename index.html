@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>차량목록</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+        <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+        <style>
+            *{
+                font-family: 'Pretendard';
+            }
+            html, body{
+                padding: 0;
+                margin: 0;
+                user-select: none;
+
+            }
+            #form{
+                width: 100vw;
+                height: 5em;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            #form > input{
+                width: 10em;
+                height: 2em;
+                font-size: 1.5em;
+                text-align: center;
+                border-radius: 1em;
+                border: 1px solid #CCC;
+                margin-top: 0.5em;
+                margin-left: calc(50% - 5em);
+                padding: 0;
+                display: hidden;
+            }
+            #table{
+                width: 100vw;
+                height: calc(100% - 5em);
+                position: absolute;
+                top: 5em;
+                left: 0;
+                overflow-y: scroll;
+            }
+            #table > .article{
+                width: calc(100% - 2em);
+                height: 4em;
+                border: 1px solid #CCC;
+                border-bottom: 0.2em solid #CCC;
+                border-radius: 0.2em;
+                margin-left: calc(1em - 2px);
+                margin-bottom: 0.4em;
+            }
+            .article > .number{
+                font-size: 2.5em;
+                margin-top: 0.2em;
+                margin-left: 0.5em;
+                width: 3em;
+                float: left;
+            }
+            .article > .detail{
+                margin-top: 0.8em;
+            }
+            .highlight{
+                animation-name: highlight;
+                animation-duration: 4s;
+            }
+            @keyframes highlight{
+                from{
+                    background-color: #93d6ff;
+                }
+                40%{
+                    background-color: #93d6ff;
+                }
+                to{
+                    background-color: #FFF;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="form">
+            <input id="search" type="number" placeholder="찾기(예: 5141)" autocomplete="off"/>
+        </div>
+        <div id="table">
+            <!--
+            <div class="article">
+                <div class="number">
+                    5016
+                </div>
+                <div class="detail">
+                    2차고지 / CNG<br>저상 에어로시티
+                </div>
+            </div>
+            -->
+        </div>
+        <script>
+            var version = 250314;
+            var buses = [];
+            var prevInput = '';
+
+            function listBuses(){
+                $.ajax({
+                    url: `./list.csv?${version}`
+                }).done(function(data){
+                    var output = '';
+                    data = data.split('\n');
+                    for(var i = 1; i < data.length; i++){
+                        var line = data[i].split(',');
+                        buses.push(line[0]);
+                        output+= `
+                            <div id="car_${line[0]}" class="article">
+                                <div class="number">${line[0]}</div>
+                                <div class="detail">
+                                ${line[1]} / ${line[3]}<br>${line[2]}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    $('#table').html(output);
+                });
+            }
+
+            $('#search').on('change keyup paste', function(){
+                var input = ($(this).val()+'').padStart(4, "5000");
+                //var input = $(this).val()+'';
+                if(prevInput == input)  return;
+                if(!buses.includes(input))  return;
+                if(buses.includes(prevInput))   $(`#car_${prevInput}`).removeClass('highlight');
+
+                prevInput = input;
+                console.log(input);
+                
+                $(`#car_${input}`)[0].scrollIntoView();
+                $(`#car_${input}`).addClass('highlight');
+            });
+
+            listBuses();
+        </script>
+    </body>
+</html>
