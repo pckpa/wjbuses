@@ -279,6 +279,7 @@
                         $.ajax({
                             url: 'https://eggplant.pcws.kr/wjbuses/back/api.php?q=getList',
                             dataType: 'jsonp',
+                            xhrFields: {withCredentials: true},
                             jsonpCallback: "callback",
                             success: function(data){
                                 var output = '';
@@ -309,6 +310,7 @@
                         url: `https://eggplant.pcws.kr/wjbuses/back/api.php?q=getTable&t=${req}`,
                         dataType: 'jsonp',
                         jsonpCallback: "callback",
+                        xhrFields: {withCredentials: true},
                         success: function(data){
                             names = [];
                             prevInput = '';
@@ -376,6 +378,7 @@
                     url: 'https://eggplant.pcws.kr/wjbuses/back/api.php?q=login',
                     type: 'POST',
                     crossDomain: true,
+                    xhrFields: {withCredentials: true},
                     data: {
                         id: id,
                         pw: pw
