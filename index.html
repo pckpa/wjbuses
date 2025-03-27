@@ -28,6 +28,7 @@
                 border-radius: 1.2em;
                 border: 1px solid #CCC;
                 z-index: 2;
+                cursor: pointer;
             }
             #dateselector{
                 position: absolute;
@@ -90,6 +91,8 @@
                 backdrop-filter: blur(3px);
                 background-color: rgba(0, 0, 0, 0.5);
                 display: none;
+                color: #FFF;
+                text-align: center;
             }
             #form{
                 width: 100vw;
@@ -113,6 +116,7 @@
                 width: calc(100% - 4em);
                 margin-left: calc(2em - 2px);
                 max-height: calc(100vh - 16em);
+                overflow-y: auto;
                 top: 6em;
                 line-height: 1.2em;
                 border-radius: 0.2em;
@@ -155,6 +159,7 @@
                 border-radius: 0.2em;
                 margin-left: calc(1em - 2px);
                 margin-bottom: 0.4em;
+                cursor: pointer;
             }
             .article > .number{
                 font-size: 2.5em;
@@ -165,6 +170,34 @@
             }
             .article > .detail{
                 margin-top: 0.8em;
+            }
+            .article_line{
+                width: fit-content;
+                height: 1em;
+                margin-left: calc(1em - 2px);
+                margin-bottom: 0.7em;
+                margin-top: 1.7em;
+                padding-right: 2em;
+                cursor: pointer;
+            }
+            .article_line_big{
+                margin-bottom: 1.5em;
+                font-size: 1.2em;
+            }
+            #helpbutton{
+                position: absolute;
+                z-index: 2;
+                right: 1.5em;
+                bottom: 2.5em;
+                background-color: #17bd35;
+                opacity: 0.5;
+                width: 5em;
+                height: 5em;
+                border-radius: 2.5em;
+                line-height: 1.2em;
+                text-align: center;
+                color: #FFF;
+                cursor: pointer;
             }
             .highlight{
                 animation-name: highlight;
@@ -185,7 +218,7 @@
     </head>
     <body>
         <div id="date" onclick="schedules('new')">
-            📅
+            배차
         </div>
         <div id="dateselector">
         </div>
@@ -197,7 +230,11 @@
                 <input id="submit" type="submit" value="로그인" />
             </form>
         </div>
-        <div id="blur" onclick="cancelmodal()"></div>
+        <div id="blur" onclick="cancelmodal()">
+            <div style="position: absolute; bottom: 6em; width: 100%;">
+                창을 닫으려면 회색 부분 아무데나 누르세요.
+            </div>
+        </div>
         <div id="form">
             <input id="search" type="text" placeholder="찾기(이름, 차번)" />
         </div>
@@ -232,6 +269,12 @@
             </div>
             -->
         </div>
+        <div id="helpbutton" onclick="window.open('./help');">
+            <div style="margin-top: 1em;">
+                <span style="font-size: 3em;">?</span><br>
+                도움말
+            </div>
+        </div>
         <div id="footer">
         </div>
         <script>
@@ -239,8 +282,24 @@
             var buses = [];
             var names = [];
             var cardata = [];
+            var carindex = {};
             var prevInput = '';
             var logined = false;
+            var linelisted = false;
+            var group = [
+                ['211', '311'],
+                ['814', '815'],
+                ['503', '871', '872', '823', '842-1', '842-2', '831834', '922'],
+                ['915'],
+                ['407'],
+                ['509'],
+                ['747'],
+                ['B3'],
+                ['214', '215', '216', '313'],
+                ['217', '314', '921'],
+                ['864'],
+                ['535']
+            ];
 
             function listBuses(){
                 $.ajax({
@@ -256,7 +315,8 @@
                             schedule: {
                                 date: null,
                                 route: null,
-                                driver: null
+                                driver: null,
+                                reduce: 0
                             }
                         };
                         output+= `
@@ -284,7 +344,7 @@
                                 var output = '';
                                 for(var i = 0; i < data.length; i++){
                                     if(i > 0 && data[i][0].split('수정')[0].trim() == data[i-1][0].split('수정')[0].trim()) continue;
-                                    output+= `<span onclick="schedules('${data[i][0]}')">${data[i][0]}</span><br>`;
+                                    output+= `<span style="cursor: pointer;" onclick="schedules('${data[i][0]}')">${data[i][0]}</span><br>`;
                                     if(i > 1)   break;
                                 }
                                 $('#dateselector').css('display', 'block');
@@ -312,7 +372,11 @@
                         success: function(data){
                             names = [];
                             prevInput = '';
+                            carindex = {
+                                0: []
+                            };
 
+                            //데이터처리ㅡㅡㅡ
                             var rows = data.data.split('\n');
                             var checked = [];
                             for(var i = 0; i < rows.length-1; i++){
@@ -331,18 +395,21 @@
                                 if(row[6] != '')    names[row[6]] = row[2];
 
                                 if(!buses.includes(row[2])){
-                                    alert(`정보 없는 차량: \n${row[2]}: ${row[0]} ${row[1]}번\n${driver}`);
+                                    console.log(`정보 없는 차량: \n${row[2]}: ${row[0]}선 ${row[1]}번\n${driver}`);
+                                    cardata[row[2]] = {
+                                        meta: null,
+                                        schedule: {}
+                                    };
                                 }
 
-                                $(`#car_${row[2]} > .detail`).html(`${row[0]}&nbsp;${row[1]}번<br>${driver}`);
-
-                                if(row[7] == 1) $(`#car_${row[2]}`).css('color', '#CCC');
-                                else            $(`#car_${row[2]}`).css('color', '#000');
-
                                 cardata[row[2]].schedule.date = req;
-                                cardata[row[2]].schedule.route = `${row[0]} ${row[1]}번`;
+                                cardata[row[2]].schedule.route = `${row[0]}선 ${row[1]}번`;
                                 cardata[row[2]].schedule.driver = driver;
+                                cardata[row[2]].schedule.reduce = row[7];
                                 if(row[7] == 1) cardata[row[2]].schedule.route+='(감차)';
+
+                                if(typeof(carindex[row[0]]) == 'undefined')   carindex[row[0]] = [];
+                                carindex[row[0]][row[1]] = row[2];
                             }
                             for(var i = 0; i < rows.length; i++){
                                 var row = rows[i].split(',');
@@ -350,13 +417,59 @@
                                 if(typeof(names[row[5]]) == 'undefined') names[row[5]] = row[2];
                             }
                             for(var i = 0; i < buses.length; i++){
+                                //배차없는차
                                 if(!checked.includes(buses[i])){
-                                    $(`#car_${buses[i]} > .detail`).html('배차없음');
-                                    $(`#car_${buses[i]}`).css('color', '#CCC');
+                                    carindex[0].push(buses[i]);
                                     cardata[buses[i]].schedule = {date: null, route: null, driver: null};
                                 }
-                                $(`#car_${buses[i]}`).attr('onclick', `showdetail(${buses[i]})`);
                             }
+
+                            //렌더ㅡㅡㅡㅡ
+                            var output = '';
+                            var reducecss = ['', 'style="color: #CCC;"'];
+                            var toplinecss = 'style="margin-top: 0;"';
+                            for(var i = 0; i < group.length; i++){
+                                var prevroute = null;
+                                group[i].forEach(route => {
+                                    if(prevroute != route){
+                                        output+= `
+                                            <div id="line_${route}" class="article_line" ${toplinecss} onclick="gotoline('${route}');">
+                                                ￭ ${route}번
+                                            </div>
+                                        `;
+                                        toplinecss = '';
+                                        prevroute = route;
+                                    }
+                                    carindex[route].forEach(car => {
+                                        output+= `
+                                            <div id="car_${car}" class="article" ${reducecss} onclick="showdetail(${car})">
+                                                <div class="number">${car}</div>
+                                                <div class="detail">
+                                                ${cardata[car].schedule.route}<br>${cardata[car].schedule.driver}
+                                                </div>
+                                            </div>
+                                        `;
+                                    });
+                                });
+                            }
+
+                            output+= `
+                                <div id="line_0" class="article_line" onclick="gotoline('0');">
+                                    ￭ 배차없음
+                                </div>
+                            `;
+                            for(var i = 0; i < carindex[0].length; i++){
+                                var car = carindex[0][i];
+                                output+= `
+                                    <div id="car_${car}" class="article" style="color: #CCC;" onclick="showdetail(${car})">
+                                        <div class="number">${car}</div>
+                                        <div class="detail">
+                                        배차없음
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            $('#table').html(output);
                         },
                         error: function(xhr){
                             console.log(xhr);
@@ -365,6 +478,20 @@
                     var dispDate = req.split(' ');
                     $('#date').html(dispDate[2]);
                 }
+            }
+
+            function gotoline(line){
+                if(linelisted == 0){
+                    $('.article').css('display', 'none');
+                    $('.article_line').addClass('article_line_big');
+                    $(`#line_${line}`)[0].scrollIntoView();
+                    linelisted = 1;
+                    return;
+                }
+                $('.article').css('display', 'block');
+                $('.article_line').removeClass('article_line_big');
+                $(`#line_${line}`)[0].scrollIntoView();
+                linelisted = 0;
             }
 
             function trylogin(){
