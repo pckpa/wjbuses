@@ -345,7 +345,7 @@
                                 for(var i = 0; i < data.length; i++){
                                     if(i > 0 && data[i][0].split('수정')[0].trim() == data[i-1][0].split('수정')[0].trim()) continue;
                                     output+= `<span style="cursor: pointer;" onclick="schedules('${data[i][0]}')">${data[i][0]}</span><br>`;
-                                    if(i > 1)   break;
+                                    if(i > 4)   break;
                                 }
                                 $('#dateselector').css('display', 'block');
                                 $('#dateselector').html(output);
