@@ -341,11 +341,21 @@
                             dataType: 'jsonp',
                             jsonpCallback: "callback",
                             success: function(data){
-                                var output = '';
+                                var list = [];
+                                var checked = [];
+                                var j = 0;
                                 for(var i = 0; i < data.length; i++){
-                                    if(i > 0 && data[i][0].split('수정')[0].trim() == data[i-1][0].split('수정')[0].trim()) continue;
-                                    output+= `<span style="cursor: pointer;" onclick="schedules('${data[i][0]}')">${data[i][0]}</span><br>`;
-                                    if(i > 4)   break;
+                                    if(checked.includes(data[i][0].split('(')[0].trim()))   continue;
+                                    checked.push(data[i][0].split('(')[0].trim());
+                                    //output.push(`<span style="cursor: pointer;" onclick="schedules('${data[i][0]}')">${data[i][0]}</span><br>`);
+                                    list.push(data[i][0]);
+                                    j++;
+                                    if(j == 4)   break;
+                                }
+                                list.sort().reverse();
+                                var output = '';
+                                for(var i = 0; i < list.length; i++){
+                                    output+= `<span style="cursor: pointer;" onclick="schedules('${list[i]}')">${list[i]}</span><br>`;
                                 }
                                 $('#dateselector').css('display', 'block');
                                 $('#dateselector').html(output);
@@ -442,7 +452,7 @@
                                     }
                                     carindex[route].forEach(car => {
                                         output+= `
-                                            <div id="car_${car}" class="article" ${reducecss} onclick="showdetail(${car})">
+                                            <div id="car_${car}" class="article" ${reducecss[cardata[car].schedule.reduce]} onclick="showdetail(${car})">
                                                 <div class="number">${car}</div>
                                                 <div class="detail">
                                                 ${cardata[car].schedule.route}<br>${cardata[car].schedule.driver}
