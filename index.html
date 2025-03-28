@@ -331,6 +331,7 @@
                     data = data.split('\n');
                     for(var i = 1; i < data.length; i++){
                         var line = data[i].split(',');
+                        if(line[0] == undefined)    continue;
                         buses.push(line[0]);
                         cardata[line[0]] = {
                             meta: `${line[1]} / ${line[3]} / ${line[2]}`,
@@ -358,7 +359,7 @@
                         success: function(slot){
                             for(var i = 1; i < data.length; i++){
                                 var line = data[i].split(',');
-                                console.log(line[0], line[4]);
+                                if(line[0] == undefined)    continue;
                                 var pos = line[4].trim();
                                 if(typeof(slot[line[1]][pos]) == 'string')  pos = slot[line[1]][pos];
                                 cardata[line[0]].parking = pos;
