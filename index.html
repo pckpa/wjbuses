@@ -300,7 +300,7 @@
         <div id="footer">
         </div>
         <script>
-            var version = 250327;
+            var version = 250328;
             var buses = [];
             var names = [];
             var cardata = [];
@@ -358,6 +358,7 @@
                         success: function(slot){
                             for(var i = 1; i < data.length; i++){
                                 var line = data[i].split(',');
+                                console.log(line[0], line[4]);
                                 var pos = line[4].trim();
                                 if(typeof(slot[line[1]][pos]) == 'string')  pos = slot[line[1]][pos];
                                 cardata[line[0]].parking = pos;
