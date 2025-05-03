@@ -22,8 +22,22 @@
                 width: 2.4em;
                 height: 2.4em;
                 top: 0.9em;
-                margin-left: calc(50% + 4.7em - 2px);
-                line-height: 2.4em;
+                margin-left: calc(50% + 8.5em - 2px - 2.4em - 2.95em);
+                line-height: 2.3em;
+                font-size: 1.2em;
+                text-align: center;
+                border-radius: 1.2em;
+                border: 1px solid #CCC;
+                z-index: 2;
+                cursor: pointer;
+            }
+            #settingbutton{
+                position: absolute;
+                width: 2.4em;
+                height: 2.4em;
+                top: 0.9em;
+                margin-left: calc(50% + 8.5em - 2px - 2.4em);
+                line-height: 2.3em;
                 font-size: 1.2em;
                 text-align: center;
                 border-radius: 1.2em;
@@ -46,6 +60,29 @@
                 padding-top: 0.3em;
                 padding-bottom: 0.3em;
                 display: none;
+            }
+            #setting{
+                position: absolute;
+                width: 12em;
+                top: 0.9em;
+                margin-left: calc(50% - 7em);
+                line-height: 2em;
+                font-size: 1.2em;
+                text-align: left;
+                border-radius: 1.2em;
+                border: 1px solid #CCC;
+                background-color: #FFF;
+                z-index: 5;
+                padding-top: 0.7em;
+                padding-bottom: 0.3em;
+                padding-left: 1em;
+                padding-right: 1em;
+                display: none;
+            }
+            .setting_click{
+                color: #1746bd;
+                border-bottom: #1746bd 1px solid;
+                cursor: pointer;
             }
             #login{
                 position: absolute;
@@ -109,7 +146,7 @@
                 text-align: center;
                 border-radius: 1.2em;
                 border: 1px solid #CCC;
-                margin-left: calc(50% - 7em);
+                margin-left: calc(50% - 8.5em);
                 padding: 0;
             }
             #busdetails{
@@ -174,9 +211,8 @@
             }
             .article_line{
                 width: fit-content;
-                height: 1em;
+                height: 1.7em;
                 margin-left: calc(1em - 2px);
-                margin-bottom: 0.7em;
                 margin-top: 1.7em;
                 padding-right: 2em;
                 cursor: pointer;
@@ -234,7 +270,10 @@
     </head>
     <body>
         <div id="date" onclick="schedules('new')">
-            배차
+            <span style="font-size:1rem">배차</span>
+        </div>
+        <div id="settingbutton" onclick="openSetting()">
+            <span style="font-size:1rem">설정</span>
         </div>
         <div id="dateselector">
         </div>
@@ -245,6 +284,16 @@
                 <input id="pw" class="logininput" type="password" placeholder="비밀번호" required />
                 <input id="submit" type="submit" value="로그인" />
             </form>
+        </div>
+        <div id="setting">
+            자동 검색 - <span id="setting_autoSearch" class="setting_click" onclick="editSetting('click', 'autoSearch')"></span><br>
+            <div style="font-size: 0.8em; line-height: 1.4em;">
+                배차표를 볼 때 지정한 차량이나 이름부터 바로 보이도록 합니다.<p/>
+            </div>
+            자동 로그인 - <span id="setting_autoLogin" class="setting_click" onclick="editSetting('click', 'autoLogin')"></span><br>
+            <div style="font-size: 0.8em; line-height: 1.4em;">
+                로그인 과정을 생략합니다.<p/>
+            </div>
         </div>
         <div id="blur" onclick="cancelmodal()">
             <div style="position: absolute; bottom: 6em; width: 100%;">
@@ -273,7 +322,13 @@
         <div id="footer">
         </div>
         <script>
-            var version = 250424;
+            const version = 250503;
+            const api = 'https://eggplant.pcws.kr/wjbuses/back/api2.php';
+            const setting = {
+                autoLogin: true,
+                autoSearch: null,
+                receivePush: false
+            };
             var buses = [];
             var names = [];
             var cardata = [];
@@ -340,6 +395,7 @@
                         }
                     })
                     $('#table').html(output);
+                    if(setting.autoLogin)   tryHashLogin();
                 });
             }
 
@@ -348,7 +404,7 @@
                     if(logined){
                         $('#date').html('...');
                         $.ajax({
-                            url: 'https://eggplant.pcws.kr/wjbuses/back/api.php?q=getList',
+                            url: api + '?q=getList',
                             dataType: 'jsonp',
                             jsonpCallback: "callback",
                             success: function(data){
@@ -357,11 +413,15 @@
                                 var j = 0;
                                 for(var i = 0; i < data.length; i++){
                                     if(checked.includes(data[i][0].split('(')[0].trim()))   continue;
+
+                                    var date = /(\d{4})년 (\d{1,2})월 (\d{1,2})일 \(([가-힣])\)/.exec(data[i][0]);
+                                    date = (new Date(date[1], date[2]-1, date[3])).getTime();
+                                    if(date < Date.now() - 129600000)   continue;
+
                                     checked.push(data[i][0].split('(')[0].trim());
                                     //output.push(`<span style="cursor: pointer;" onclick="schedules('${data[i][0]}')">${data[i][0]}</span><br>`);
                                     list.push(data[i][0]);
                                     j++;
-                                    if(j == 4)   break;
                                 }
                                 list.sort().reverse();
                                 var output = '';
@@ -387,7 +447,7 @@
                     $('#dateselector').css('display', 'none');
                     $('#blur').css('display', 'none');
                     $.ajax({
-                        url: `https://eggplant.pcws.kr/wjbuses/back/api.php?q=getTable&t=${req}`,
+                        url: `${api}?q=getTable&t=${req}`,
                         dataType: 'jsonp',
                         jsonpCallback: "callback",
                         success: function(data){
@@ -406,11 +466,11 @@
 
                                 var driver = '';
 
-                                driver+= row[3];
-                                if(row[4] != '')    driver+= `→${row[4]}`;
+                                if(row[4] != '')    driver+= `<span style="color: #CCC;">${row[3]}→</span>${row[4]}`;
+                                else                driver+= row[3];
                                 driver+= ' / ';
-                                driver+= row[5];
-                                if(row[6] != '')    driver+= `→${row[6]}`;
+                                if(row[6] != '')    driver+= `<span style="color: #CCC;">${row[5]}→</span>${row[6]}`;
+                                else                driver+= row[5];
 
                                 if(row[4] != '')    names[row[4]] = row[2];
                                 if(row[6] != '')    names[row[6]] = row[2];
@@ -491,13 +551,17 @@
                                 `;
                             }
                             $('#table').html(output);
+                            if(setting.autoSearch != null && $('#search').val() == '')
+                                $('#search').val(setting.autoSearch).trigger('change');
+                            else if($('#search').val() != '')
+                                $('#search').trigger('change');
                         },
                         error: function(xhr){
                             console.log(xhr);
                         }
                     });
-                    var dispDate = req.split(' ');
-                    $('#date').html(dispDate[2]);
+                    var date = /(\d{4})년 (\d{1,2})월 (\d{1,2})일 \(([가-힣])\)/.exec(req);
+                    $('#date').html(`<span style="font-size:1rem">${date[3]}${date[4]}</span>`);
                 }
             }
 
@@ -521,7 +585,7 @@
                 var pw = $('#loginform > #pw').val();
                 $('#loginform > #submit').attr("disabled", true);
                 $.ajax({
-                    url: 'https://eggplant.pcws.kr/wjbuses/back/api.php?q=login',
+                    url: api + '?q=login',
                     type: 'POST',
                     crossDomain: true,
                     data: {
@@ -532,6 +596,7 @@
                     success:function(result){
                         if(result.res == 200){
                             logined = true;
+                            document.cookie = `hash = ${result.b}; max-age=345600`;
                             $('#login').css('display', 'none');
                             schedules('new');
                         }
@@ -550,11 +615,16 @@
                 });
             }
 
+            function openSetting(){
+                $('#setting').css('display', 'block');
+                $('#blur').css('display', 'block');
+            }
+
             function showdetail(car){
                 if(!logined)    return;
 
                 var driver = cardata[car].schedule.driver;
-                if(driver != null)  driver = driver.replaceAll('→', ' → ').split('/');
+                if(driver != null)  driver = driver.replaceAll('→', ' → ').split(' / ');
                 else                driver = [null, null];
 
                 $('#busdetails').html(`
@@ -563,7 +633,7 @@
                 </div>
                 <div class="description">
                     ${cardata[car].meta}<br>
-                    주차자리: ${cardata[car].parking}
+                    주차자리: <span style="white-space: nowrap;">${cardata[car].parking}</span>
                 </div>
                 <div class="description">
                     ${cardata[car].schedule.date} 배차<br>
@@ -581,6 +651,7 @@
                 $('#dateselector').css('display', 'none');
                 $('#busdetails').css('display', 'none');
                 $('#login').css('display', 'none');
+                $('#setting').css('display', 'none');
                 $('#blur').css('display', 'none');
             }
 
@@ -610,7 +681,85 @@
                 }
             });
 
-            listBuses();
+            function tryHashLogin(){
+                var hash = getCookie('hash');
+                if(hash == null)    return;
+
+                $.ajax({
+                    url: api + '?q=login',
+                    type: 'POST',
+                    crossDomain: true,
+                    data: {
+                        hash: hash
+                    },
+                    dataType: 'json',
+                    success:function(result){
+                        if(result.res == 200){
+                            logined = true;
+                            document.cookie = `hash = ${result.b}; max-age=604800`;
+                            schedules('new');
+                        }
+                    }
+                });
+
+
+                function getCookie(name){
+                    const cookies = document.cookie.split('; ');
+                    for (const cookie of cookies) {
+                        const [key, value] = cookie.split('=');
+                        if (key === name) return decodeURIComponent(value);
+                    }
+                    return null;
+                }
+            }
+
+            function editSetting(type, key){
+                var keys = Object.keys(setting);
+
+                if(type == 'read'){
+                    for(var i = 0; i < keys.length; i++){
+                        var value = localStorage.getItem(keys[i]);
+                        if(value == null) continue;
+                        if(['true', 'false', 'null'].includes(value)) value = JSON.parse(value);
+                        setting[keys[i]] = value;
+                    }
+
+                    var values = {true: '☑', false: '☐'};
+                    $('#setting_autoLogin').html(values[setting.autoLogin]);
+
+                    var values = {true: '☑', false: '☐'};
+                    $('#setting_receivePush').html(values[setting.receivePush]);
+                    
+                    var values = setting.autoSearch || '';
+                    $('#setting_autoSearch').html(`✎${values}`);
+
+                    if(!setting.autoLogin)  document.cookie = `hash = ; max-age=0`;
+                }
+                else if(type == 'click'){
+                    if(key == 'autoLogin'){
+                        if(setting.autoLogin == true)   setting.autoLogin = false;
+                        else                            setting.autoLogin = true;
+                    }
+                    else if(key == 'autoSearch'){
+                        var value = window.prompt('입력 예시: 홍길동(이름), 47, 5047(차량번호)');
+                        if(value == '') value = null;
+                        setting.autoSearch = value;
+                    }
+
+                    editSetting('write');
+                }
+                else if(type == 'write'){
+                    for(var i = 0; i < keys.length; i++){
+                        localStorage.setItem(keys[i], setting[keys[i]]);
+                    }
+                    editSetting('read');
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                editSetting('read');
+                listBuses();
+            });
         </script>
     </body>
 </html>
