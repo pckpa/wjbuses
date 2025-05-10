@@ -392,10 +392,10 @@
                                 if(typeof(slot[line[1]][pos]) == 'string')  pos = slot[line[1]][pos];
                                 cardata[line[0]].parking = pos;
                             }
+                            $('#table').html(output);
+                            if(setting.autoLogin)   tryHashLogin();
                         }
                     })
-                    $('#table').html(output);
-                    if(setting.autoLogin)   tryHashLogin();
                 });
             }
 
