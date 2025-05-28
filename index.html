@@ -783,7 +783,7 @@
                         $('#monthTable').html(output);
                         $('#monthCalendar').css('height', `${Math.ceil(cells / 7) * 5}em`);
 
-                        searchScheduleLog();
+                        searchScheduleLog(false);
                     },
                     error: function(xhr){
                         console.log(xhr);
@@ -793,10 +793,12 @@
             }
 
             function searchScheduleLog(value = ''){
-                if(setting.autoSearch != null && $('#search').val() == '')
-                $('#search').val(setting.autoSearch).trigger('change');
-
-                if(value == '')  value = $('#search').val();
+                if(setting.autoSearch != null && $('#search').val() == '' && value == false)
+                    $('#search').val(setting.autoSearch).trigger('change');
+                
+                if(value == ''){
+                    value = $('#search').val();
+                }
                 if(value == ''){
                     $('#monthComent').text('"찾기"란에 운전자 이름을 입력해주세요.');
                     return;
