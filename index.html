@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>차량목록</title>
+        <title>차량·배차목록</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
         <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
@@ -15,7 +15,6 @@
                 padding: 0;
                 margin: 0;
                 user-select: none;
-
             }
             #date{
                 position: absolute;
@@ -58,7 +57,7 @@
                 background-color: #FFF;
                 z-index: 5;
                 padding-top: 0.3em;
-                padding-bottom: 0.3em;
+                padding-bottom: 0.1em;
                 display: none;
             }
             #setting{
@@ -221,6 +220,52 @@
                 margin-bottom: 1.5em;
                 font-size: 1.2em;
             }
+            #monthHeader{
+                text-align: center;
+                font-size: 1.2em;
+                height: 2.4em;
+                width: 13rem;
+                margin-left: calc(50vw - 6.5rem);
+            }
+            #monthHeader > div{
+                float: left;
+            }
+            .monthSelector{
+                border: 1px solid #CCC;
+                font-size: 1.0rem;
+                width: 1.5rem;
+                margin-top: 0.9em;
+                line-height: 0.9em;
+                border-radius: 1em;
+                cursor: pointer;
+            }
+            #monthTable{
+                width: 100vw;
+                text-align: center;
+            }
+            #monthCalendar{
+                width: calc(100vw - 2em);
+                border: 1px solid #CCC;
+                border-bottom: 0.2em solid #CCC;
+                border-radius: 0.2em;
+                margin-left: calc(1em - 2px);
+                position: relative;
+            }
+            #monthCalendar > div{
+                width: calc(100% / 7);
+                border-bottom: 1px solid #CCC;
+                height: 5em;
+                margin-bottom: -1px;
+                position: absolute;
+            }
+            .monthCell{
+                border-radius: 0.2rem;
+                text-align: left;
+                font-size: 0.8em;
+                margin: 0.2em;
+                margin-right: 0.2em;
+                padding-left: 0.2em;
+            }
             #helpbutton{
                 position: absolute;
                 z-index: 2;
@@ -336,6 +381,8 @@
             var prevInput = '';
             var logined = false;
             var linelisted = false;
+            var scheduleLogMode = false;
+            var scheduleLogData;
             var group = [
                 ['211', '311'],
                 ['814', '815'],
@@ -412,13 +459,12 @@
                                 var checked = [];
                                 var j = 0;
                                 for(var i = 0; i < data.length; i++){
-                                    if(checked.includes(data[i][0].split('(')[0].trim()))   continue;
-
                                     var date = /(\d{4})년 (\d{1,2})월 (\d{1,2})일 \(([가-힣])\)/.exec(data[i][0]);
                                     date = (new Date(date[1], date[2]-1, date[3])).getTime();
+                                    if(checked.includes(date))   continue;
                                     if(date < Date.now() - 129600000)   continue;
 
-                                    checked.push(data[i][0].split('(')[0].trim());
+                                    checked.push(date);
                                     //output.push(`<span style="cursor: pointer;" onclick="schedules('${data[i][0]}')">${data[i][0]}</span><br>`);
                                     list.push(data[i][0]);
                                     j++;
@@ -428,6 +474,7 @@
                                 for(var i = 0; i < list.length; i++){
                                     output+= `<span style="cursor: pointer;" onclick="schedules('${list[i]}')">${list[i]}</span><br>`;
                                 }
+                                output+= '<div style="border-top: 1px solid #CCC; cursor: pointer;" onclick="showScheduleLog(false)">과거 배차이력</div>';
                                 $('#dateselector').css('display', 'block');
                                 $('#dateselector').html(output);
                                 $('#blur').css('display', 'block');
@@ -446,6 +493,7 @@
                 else{
                     $('#dateselector').css('display', 'none');
                     $('#blur').css('display', 'none');
+                    scheduleLogMode = false;
                     $.ajax({
                         url: `${api}?q=getTable&t=${req}`,
                         dataType: 'jsonp',
@@ -620,6 +668,181 @@
                 $('#blur').css('display', 'block');
             }
 
+            function showScheduleLog(date){
+                $('#dateselector').css('display', 'none');
+                $('#blur').css('display', 'none');
+                scheduleLogMode = true;
+
+                const today = new Date();
+                if(!date) date = [today.getFullYear(), today.getMonth() + 1];
+                const thisDate = date;
+
+                var prevDate, nextDate;
+                if(thisDate[1] > 1)  prevDate = [thisDate[0], thisDate[1] - 1];
+                else                 prevDate = [thisDate[0] - 1, 12];
+                if(thisDate[1] < 12) nextDate = [thisDate[0], thisDate[1] + 1];
+                else                 nextDate = [thisDate[0] + 1, 1];
+
+                $('#table').html(`
+                    <div id="monthHeader">
+                        <div class="monthSelector" onclick="showScheduleLog([${prevDate[0]}, ${prevDate[1]}])">←</div>
+                        <div style="width: calc(10rem - 4px); line-height: 2.4em;">${thisDate[0]}년 ${thisDate[1]}월</div>
+                        <div class="monthSelector" onclick="showScheduleLog([${nextDate[0]}, ${nextDate[1]}])">→</div></div>
+                    <div id="monthTable">데이터 처리중</div>`
+                );
+
+                $.ajax({
+                    url: api + `?q=getTableMany&search=${thisDate[0]}년%20${thisDate[1]}월`,
+                    dataType: 'jsonp',
+                    jsonpCallback: "callback",
+                    success: function(data){
+                        var list = [];
+                        var checked = [];
+                        var rawData = [];
+                        for(var i = 0; i < data.length; i++){
+                            var date = /(\d{4})년 (\d{1,2})월 (\d{1,2})일 \(([가-힣])\)/.exec(data[i][0]);
+                            var unixdate = (new Date(date[1], date[2]-1, date[3])).getTime();
+                            if(checked.includes(unixdate))   continue;
+
+                            checked.push(unixdate);
+                            list.push(data[i][0]);
+                            rawData[data[i][0]] = data[i][1].trim();
+                        }
+                        if(list.length == 0){
+                            $('#monthTable').html(`${thisDate[0]}년 ${thisDate[1]}월 배차 자료가 없습니다.`);
+                            return;
+                        }
+                        list.sort(function(a, b){
+                            var aVal = /(\d{4})년 (\d{1,2})월 (\d{1,2})일 \(([가-힣])\)/.exec(a);
+                            aVal = new Date(aVal[1], aVal[2]-1, aVal[3]).getTime();
+                            var bVal = /(\d{4})년 (\d{1,2})월 (\d{1,2})일 \(([가-힣])\)/.exec(b);
+                            bVal = new Date(bVal[1], bVal[2]-1, bVal[3]).getTime();
+                            return aVal - bVal;
+                        });
+
+                        scheduleLogData = {
+                            cars: [],
+                            names: [],
+                            data: {}
+                        };
+                        var dayList = {};
+                        for(var i = 0; i < list.length; i++){
+                            const rows = rawData[list[i]].split('\n');
+                            const date = /(\d{4})년 (\d{1,2})월 (\d{1,2})일 \(([가-힣])\)/.exec(list[i])[3]*1
+                            dayList[date] = {};
+                            for(var j = 0; j < rows.length; j++){
+                                const row = rows[j].split(',');
+                                if(row[7] == '1')  continue;
+                                dayList[date][row[2]] = {
+                                    route: row[0],
+                                    number: row[1]
+                                };
+                                if(row[4] == '')    dayList[date][row[2]].driver1 = row[3];
+                                else                dayList[date][row[2]].driver1 = row[4];
+                                if(row[6] == '')    dayList[date][row[2]].driver2 = row[5];
+                                else                dayList[date][row[2]].driver2 = row[6];
+
+                                if(!scheduleLogData.cars.includes(row[2]))  scheduleLogData.cars.push(row[2]);
+                                if(!scheduleLogData.names.includes(dayList[date][row[2]].driver1))  scheduleLogData.names.push(dayList[date][row[2]].driver1);
+                                if(!scheduleLogData.names.includes(dayList[date][row[2]].driver2))  scheduleLogData.names.push(dayList[date][row[2]].driver2);
+                            }
+                        }
+                        scheduleLogData.data = dayList;
+                        
+                        var output = '<div id="monthCalendar">';
+                        var cells = 0;
+                        const days = ['일', '월', '화', '수', '목', '금', '토'];
+                        const firstDate = days.indexOf(/\((.)\)/.exec(list[0])[1]);
+                        const lastDate = new Date(thisDate[0], thisDate[1], 0);
+                        for(var i = 0; i < firstDate; i++){
+                            var addStyle = '';
+                            addStyle+= `left: ${100 / 7 * i}%;`;
+
+                            output+= `<div style="${addStyle}"></div>`;
+                            cells++;
+                        }
+                        for(var i = 0; i < list.length; i++){
+                            var date = /(\d{4})년 (\d{1,2})월 (\d{1,2})일 \(([가-힣])\)/.exec(list[i]);
+
+                            var addStyle = '';
+                            if(date[4] == '일')
+                                addStyle+= 'border-left: 1px solid #FFFFFF00;';
+                            if(date[3]*1 + 7 > lastDate.getDate() + (6 - lastDate.getDay()))
+                                addStyle+= 'border-bottom: 1px solid #FFFFFF00;';
+
+                            addStyle+= `left: ${100 / 7 * days.indexOf(date[4])}%;`;
+                            addStyle+= `top: ${Math.floor((cells) / 7) * 5}em;`;
+
+                            output+= `<div style="${addStyle}";>
+                                <div style="text-align: right;">${date[3]*1}&nbsp;</div>
+                                <div id="monthCell_${date[3]*1}" class="monthCell"></div>
+                            </div>`;
+                            cells++;
+                        }
+                        output+= '</div><br><span id="monthComent"></span>';
+                        $('#monthTable').html(output);
+                        $('#monthCalendar').css('height', `${Math.ceil(cells / 7) * 5}em`);
+
+                        searchScheduleLog();
+                    },
+                    error: function(xhr){
+                        console.log(xhr);
+                        $('#monthTable').html('데이터 로드 실패');
+                    }
+                });
+            }
+
+            function searchScheduleLog(value = ''){
+                if(value == '')  value = $('#search').val();
+                if(value == ''){
+                    $('#monthComent').text('"찾기"란에 운전자 이름을 입력해주세요.');
+                    return;
+                }
+
+                var output = [];
+                var count = [0, 0];
+                if(isNaN(value)){
+                    if(scheduleLogData.names.includes(value)){
+                        const days = Object.keys(scheduleLogData.data);
+                        for(var i = 0; i < days.length; i++){
+                            const cars = Object.keys(scheduleLogData.data[days[i]]);
+                            for(var j = 0; j < cars.length; j++){
+                                const row = scheduleLogData.data[days[i]][cars[j]];
+                                if(row.driver1 == value || row.driver2 == value){
+                                    var workType;
+                                    if(row.driver1 == value) workType = 0;
+                                    else                     workType = 1;
+                                    output.push({
+                                        date: days[i],
+                                        route: row.route,
+                                        number: row.number,
+                                        car: cars[j],
+                                        type: workType
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if(output.length == 0){
+                    $('#monthComent').text('해당 검색어로 조회된 결과 없음');
+                    return;
+                }
+
+                $('.monthCell').html('');
+                for(var i = 0; i < output.length; i++){
+                    $(`#monthCell_${output[i].date}`).html(`${output[i].route}<br>${output[i].number}번<br>${output[i].car}`);
+                    const color = [['#FFE056', '#000'], ['#1B2C77', '#FFF']];
+                    $(`#monthCell_${output[i].date}`).css('background-color', color[output[i].type][0]);
+                    $(`#monthCell_${output[i].date}`).css('color', color[output[i].type][1]);
+                    count[output[i].type]++;
+                }
+                console.log(output);
+
+                $('#monthComent').text(`오전 ${count[0]}일 + 오후 ${count[1]}일 = 합계 ${count[0] + count[1]}일 근무`);
+            }
+
             function showdetail(car){
                 if(!logined)    return;
 
@@ -662,6 +885,13 @@
                 if(isNaN(input)){
                     var input = $(this).val().toUpperCase();
                     if(prevInput == input)  return;
+
+                    if(scheduleLogMode){
+                        searchScheduleLog(input);
+                        prevInput = input;
+                        return;
+                    }
+
                     if(typeof(names[prevInput]) == 'string')    $(`#car_${names[prevInput]}`).removeClass('highlight');
                     
                     prevInput = input;
@@ -672,6 +902,13 @@
                 else{
                     var input = ($(this).val()+'').padStart(4, "5000");
                     if(prevInput == input)  return;
+
+                    if(scheduleLogMode){
+                        searchScheduleLog(input);
+                        prevInput = input;
+                        return;
+                    }
+
                     if(buses.includes(prevInput))   $(`#car_${prevInput}`).removeClass('highlight');
                     
                     prevInput = input;
