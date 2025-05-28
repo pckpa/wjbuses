@@ -793,6 +793,9 @@
             }
 
             function searchScheduleLog(value = ''){
+                if(setting.autoSearch != null && $('#search').val() == '')
+                $('#search').val(setting.autoSearch).trigger('change');
+
                 if(value == '')  value = $('#search').val();
                 if(value == ''){
                     $('#monthComent').text('"찾기"란에 운전자 이름을 입력해주세요.');
