@@ -474,7 +474,7 @@
                                 for(var i = 0; i < list.length; i++){
                                     output+= `<span style="cursor: pointer;" onclick="schedules('${list[i]}')">${list[i]}</span><br>`;
                                 }
-                                output+= '<div style="border-top: 1px solid #CCC; cursor: pointer;" onclick="showScheduleLog(false)">과거 배차이력</div>';
+                                output+= '<div style="border-top: 1px solid #CCC; cursor: pointer;" onclick="showScheduleLog(false)">월간 배차이력</div>';
                                 $('#dateselector').css('display', 'block');
                                 $('#dateselector').html(output);
                                 $('#blur').css('display', 'block');
@@ -735,12 +735,17 @@
                                 if(row[7] == '1')  continue;
                                 dayList[date][row[2]] = {
                                     route: row[0],
-                                    number: row[1]
+                                    number: row[1],
+                                    spare1: false,
+                                    spare2: false
                                 };
                                 if(row[4] == '')    dayList[date][row[2]].driver1 = row[3];
-                                else                dayList[date][row[2]].driver1 = row[4];
+                                else{               dayList[date][row[2]].driver1 = row[4];
+                                                    dayList[date][row[2]].spare1 = true;  }
                                 if(row[6] == '')    dayList[date][row[2]].driver2 = row[5];
-                                else                dayList[date][row[2]].driver2 = row[6];
+                                else{               dayList[date][row[2]].driver2 = row[6];
+                                                    dayList[date][row[2]].spare2 = true;  }
+                                if(row[4] != '' || row[6] != '')    dayList[date][row[2]].spare = true;
 
                                 if(!scheduleLogData.cars.includes(row[2]))  scheduleLogData.cars.push(row[2]);
                                 if(!scheduleLogData.names.includes(dayList[date][row[2]].driver1))  scheduleLogData.names.push(dayList[date][row[2]].driver1);
@@ -765,8 +770,6 @@
                             var date = /(\d{4})년 (\d{1,2})월 (\d{1,2})일 \(([가-힣])\)/.exec(list[i]);
 
                             var addStyle = '';
-                            if(date[4] == '일')
-                                addStyle+= 'border-left: 1px solid #FFFFFF00;';
                             if(date[3]*1 + 7 > lastDate.getDate() + (6 - lastDate.getDay()))
                                 addStyle+= 'border-bottom: 1px solid #FFFFFF00;';
 
@@ -795,9 +798,10 @@
             function searchScheduleLog(value = ''){
                 if(setting.autoSearch != null && $('#search').val() == '' && value == false)
                     $('#search').val(setting.autoSearch).trigger('change');
-                
+
                 if(value == ''){
-                    value = $('#search').val();
+                    value = prevInput;
+                    //value = $('#search').val();
                 }
                 if(value == ''){
                     $('#monthComent').text('"찾기"란에 운전자 이름을 입력해주세요.');
@@ -807,26 +811,44 @@
                 var output = [];
                 var count = [0, 0];
                 if(isNaN(value)){
-                    if(scheduleLogData.names.includes(value)){
-                        const days = Object.keys(scheduleLogData.data);
-                        for(var i = 0; i < days.length; i++){
-                            const cars = Object.keys(scheduleLogData.data[days[i]]);
-                            for(var j = 0; j < cars.length; j++){
-                                const row = scheduleLogData.data[days[i]][cars[j]];
-                                if(row.driver1 == value || row.driver2 == value){
-                                    var workType;
-                                    if(row.driver1 == value) workType = 0;
-                                    else                     workType = 1;
-                                    output.push({
-                                        date: days[i],
-                                        route: row.route,
-                                        number: row.number,
-                                        car: cars[j],
-                                        type: workType
-                                    });
-                                }
-                            }
+                    if(!scheduleLogData.names.includes(value))  return;
+                    const days = Object.keys(scheduleLogData.data);
+                    for(var i = 0; i < days.length; i++){
+                        const cars = Object.keys(scheduleLogData.data[days[i]]);
+                        for(var j = 0; j < cars.length; j++){
+                            const row = scheduleLogData.data[days[i]][cars[j]];
+                            if(row.driver1 != value && row.driver2 != value)    continue;
+                            var workType;
+                            if(row.driver1 == value) workType = 0;
+                            else                     workType = 1;
+                            output.push({
+                                date: days[i],
+                                route: row.route,
+                                number: row.number,
+                                car: cars[j],
+                                type: workType
+                            });
                         }
+                    }
+                }
+                else{
+                    if(!scheduleLogData.cars.includes(value))   return;
+                    const days = Object.keys(scheduleLogData.data);
+                    for(var i = 0; i < days.length; i++){
+                        const cars = Object.keys(scheduleLogData.data[days[i]]);
+                        if(!cars.includes(value))   continue;
+                        const row = scheduleLogData.data[days[i]][value];
+                        if(row.route == '831834')   row.route = '831';
+                        output.push({
+                            date: days[i],
+                            route: row.route,
+                            number: row.number,
+                            driver1: row.driver1,
+                            driver2: row.driver2,
+                            spare1: row.spare1,
+                            spare2: row.spare2,
+                            type: 3
+                        });
                     }
                 }
 
@@ -837,15 +859,38 @@
 
                 $('.monthCell').html('');
                 for(var i = 0; i < output.length; i++){
-                    $(`#monthCell_${output[i].date}`).html(`${output[i].route}<br>${output[i].number}번<br>${output[i].car}`);
-                    const color = [['#FFE056', '#000'], ['#1B2C77', '#FFF']];
-                    $(`#monthCell_${output[i].date}`).css('background-color', color[output[i].type][0]);
-                    $(`#monthCell_${output[i].date}`).css('color', color[output[i].type][1]);
-                    count[output[i].type]++;
+                    if(output[i].type != 3){
+                        $(`#monthCell_${output[i].date}`).html(`${output[i].route}<br>${output[i].number}번<br>${output[i].car}`);
+                        const color = [['#FFE056', '#000'], ['#1B2C77', '#FFF']];
+                        $(`#monthCell_${output[i].date}`).css({
+                            'background-color': color[output[i].type][0],
+                            'color': color[output[i].type][1]
+                        });
+                        count[output[i].type]++;
+                    }
+                    else{
+                        $(`#monthCell_${output[i].date}`).css({
+                            'background-color': '',
+                            'color': ''
+                        });
+                        $(`#monthCell_${output[i].date}`).html(`<span class="scale">${output[i].route} ${output[i].number}번</span><br><span class="driver1">${output[i].driver1}</span><br><span class="driver2">${output[i].driver2}</span>`);
+                        $(`#monthCell_${output[i].date} > .scale`).css({
+                            'transform': 'scaleX(0.7)',
+                            'transform-origin': 'left',
+                            'display': 'inline-block',
+                            'white-space': 'nowrap'
+                        });
+                        if(output[i].spare1)
+                            $(`#monthCell_${output[i].date} > .driver1`).css('background-color', '#FFE056');
+                        if(output[i].spare2)
+                            $(`#monthCell_${output[i].date} > .driver2`).css('background-color', '#FFE056');
+                        
+                    }
                 }
                 console.log(output);
 
-                $('#monthComent').text(`오전 ${count[0]}일 + 오후 ${count[1]}일 = 합계 ${count[0] + count[1]}일 근무`);
+                if(isNaN(value)) $('#monthComent').text(`오전 ${count[0]}일 + 오후 ${count[1]}일 = 합계 ${count[0] + count[1]}일 근무`);
+                else             $('#monthComent').text('');
             }
 
             function showdetail(car){
