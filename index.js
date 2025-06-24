@@ -1,4 +1,4 @@
-const version = 250614;
+const version = 250625;
 const api = 'https://eggplant.pcws.kr/wjbuses/back/api2.php';
 const setting = {
     autoLogin: true,
