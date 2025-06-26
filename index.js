@@ -445,7 +445,7 @@ function searchScheduleLog(value = '') {
         //value = $('#search').val();
     }
     if (value == '') {
-        $('#monthComent').text('"찾기"란에 운전자 이름을 입력해주세요.');
+        $('#monthComent').text('"찾기"란에 운전자나 차량번호를 입력해주세요.');
         return;
     }
 
