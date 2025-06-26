@@ -229,6 +229,11 @@ function schedules(req) {
                                     </div>
                                 `;
                 }
+                if(data.note != ''){
+                    var note = data.note.trim();
+                    note = note.replaceAll('*', '<br>*');
+                    output+=`<div id="note" class="article"><div>${note}</div></div>`
+                }
                 $('#table').html(output);
                 if (setting.autoSearch != null && $('#search').val() == '')
                     $('#search').val(setting.autoSearch).trigger('change');
