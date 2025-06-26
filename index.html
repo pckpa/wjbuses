@@ -4,7 +4,7 @@
         <title>차량·배차목록</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
-        <script src="./index.js?3" defer></script>
+        <script src="./index.js?4" defer></script>
         <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
         <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
         <link rel="icon" href="./favicon.png" />
@@ -183,7 +183,7 @@
             }
             #table{
                 width: 100vw;
-                height: calc(100% - 5.1em);
+                height: calc(100% - 5.1em - 1.5rem);
                 position: absolute;
                 top: 5.1em;
                 left: 0;
@@ -322,6 +322,15 @@
                     background-color: #FFF;
                 }
             }
+            #footer{
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+                height: 1.5rem;
+                line-height: 1.5rem;
+                font-size: 0.8em;
+                text-align: center;
+            }
         </style>
     </head>
     <body>
@@ -382,6 +391,7 @@
             </div>
         </div>
         <div id="footer">
+            - 59기 문주원 / 차량정보는 <span id="version">000000</span> 기준 -
         </div>
     </body>
 </html>
