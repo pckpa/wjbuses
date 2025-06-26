@@ -691,4 +691,5 @@ function editSetting(type, key) {
 document.addEventListener("DOMContentLoaded", () => {
     editSetting('read');
     listBuses();
+    $('#version').text(version);
 });
