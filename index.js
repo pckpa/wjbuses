@@ -345,7 +345,7 @@ function showScheduleLog(date) {
                 rawData[data[i][0]] = data[i][1].trim();
             }
             if (list.length == 0) {
-                $('#monthTable').html(`${thisDate[0]}년 ${thisDate[1]}월 배차 자료가 없습니다.`);
+                $('#monthTable').html(`배차 자료가 없습니다.`);
                 return;
             }
             list.sort(function (a, b) {
@@ -456,18 +456,33 @@ function searchScheduleLog(value = '') {
         const days = Object.keys(scheduleLogData.data);
         for (var i = 0; i < days.length; i++) {
             const cars = Object.keys(scheduleLogData.data[days[i]]);
+            var workType = null;
+            var row;
             for (var j = 0; j < cars.length; j++) {
-                const row = scheduleLogData.data[days[i]][cars[j]];
+                row = scheduleLogData.data[days[i]][cars[j]];
                 if (row.driver1 != value && row.driver2 != value) continue;
-                var workType;
-                if (row.driver1 == value) workType = 0;
-                else workType = 1;
+                if (row.driver1 == value){
+                    workType = 0;
+                    break;
+                }
+                else{
+                    workType = 1;
+                    break;
+                }
+            }
+            if(workType != null){
                 output.push({
                     date: days[i],
                     route: row.route,
                     number: row.number,
                     car: cars[j],
                     type: workType
+                });
+            }
+            else{
+                output.push({
+                    date: days[i],
+                    type: null
                 });
             }
         }
@@ -500,7 +515,14 @@ function searchScheduleLog(value = '') {
 
     $('.monthCell').html('');
     for (var i = 0; i < output.length; i++) {
-        if (output[i].type != 3) {
+        $(`#monthCell_${output[i].date}`).attr('style', '');
+        if(output[i].type == null){
+            $(`#monthCell_${output[i].date}`).css({
+                'height': '3.5em',
+                'background': 'linear-gradient(-45deg, transparent calc(50% - 0.5px), #CCC calc(50% - 0.5px), #CCC calc(50% + 0.5px), transparent calc(50% + 0.5px))'
+            });
+        }
+        else if(output[i].type != 3){
             $(`#monthCell_${output[i].date}`).html(`${output[i].route}<br>${output[i].number}번<br>${output[i].car}`);
             const color = [['#FFE056', '#000'], ['#1B2C77', '#FFF']];
             $(`#monthCell_${output[i].date}`).css({
@@ -509,11 +531,7 @@ function searchScheduleLog(value = '') {
             });
             count[output[i].type]++;
         }
-        else {
-            $(`#monthCell_${output[i].date}`).css({
-                'background-color': '',
-                'color': ''
-            });
+        else{
             $(`#monthCell_${output[i].date}`).html(`<span class="scale">${output[i].route} ${output[i].number}번</span><br><span class="driver1">${output[i].driver1}</span><br><span class="driver2">${output[i].driver2}</span>`);
             $(`#monthCell_${output[i].date} > .scale`).css({
                 'transform': 'scaleX(0.7)',
@@ -555,7 +573,7 @@ function showdetail(car) {
                     오전: ${driver[0]}<br>
                     오후: ${driver[1]}
                 </div>
-                `);
+    `);
 
     $('#busdetails').css('display', 'block');
     $('#blur').css('display', 'block');
@@ -691,5 +709,5 @@ function editSetting(type, key) {
 document.addEventListener("DOMContentLoaded", () => {
     editSetting('read');
     listBuses();
-    $('#version').text(version);
+    $('#footer').text(`- 차량정보 기준일자: ${version} -`);
 });
