@@ -397,29 +397,28 @@ function showScheduleLog(date) {
             var output = '<div id="monthCalendar">';
             var cells = 0;
             const days = ['일', '월', '화', '수', '목', '금', '토'];
-            const firstDate = days.indexOf(/\((.)\)/.exec(list[0])[1]);
+            const firstDay = new Date(thisDate[0], thisDate[1]-1, 1);
             const lastDate = new Date(thisDate[0], thisDate[1], 0);
-            console.log(lastDate);
-            for (var i = 0; i < firstDate; i++) {
+            for (var i = 0; i < firstDay.getDay(); i++) {
                 var addStyle = '';
                 addStyle += `left: ${100 / 7 * i}%;`;
 
                 output += `<div style="${addStyle}"></div>`;
                 cells++;
             }
-            for (var i = 0; i < list.length; i++) {
-                var date = /(\d{4})년 (\d{1,2})월 (\d{1,2})일 \(([가-힣])\)/.exec(list[i]);
+            for (var i = 0; i < lastDate.getDate(); i++) {
+                const date = new Date(thisDate[0], thisDate[1]-1, i+1);
 
                 var addStyle = '';
-                if (date[3] * 1 + 7 > lastDate.getDate() + (6 - lastDate.getDay()))
+                if (date.getDate() + 7 > lastDate.getDate() + (6 - lastDate.getDay()))
                     addStyle += 'border-bottom: 1px solid #FFFFFF00;';
 
-                addStyle += `left: ${100 / 7 * days.indexOf(date[4])}%;`;
+                addStyle += `left: ${100 / 7 * date.getDay()}%;`;
                 addStyle += `top: ${Math.floor((cells) / 7) * 5}em;`;
 
                 output += `<div style="${addStyle}";>
-                                <div style="text-align: right;">${date[3] * 1}&nbsp;</div>
-                                <div id="monthCell_${date[3] * 1}" class="monthCell"></div>
+                                <div style="text-align: right;">${date.getDate()}&nbsp;</div>
+                                <div id="monthCell_${date.getDate()}" class="monthCell"></div>
                             </div>`;
                 cells++;
             }
