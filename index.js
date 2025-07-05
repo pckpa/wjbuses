@@ -668,7 +668,7 @@ async function editSetting(type, key) {
             if (['true', 'false', 'null'].includes(value)) value = JSON.parse(value);
             setting[keys[i]] = value;
         }
-        setting.receivePush = await checkSubscription();
+        //setting.receivePush = await checkSubscription();
 
         var values = { true: '☑', false: '☐' };
         $('#setting_autoLogin').html(values[setting.autoLogin]);
@@ -693,13 +693,12 @@ async function editSetting(type, key) {
         }
         else if (key == 'receivePush') {
             if(setting.receivePush){
-                await unsubscribeUser();
-                setting.receivePush = false;
+                if(await unsubscribeUser())
+                    setting.receivePush = false;
             }
             else{
-                if(await subscribeUser()){
+                if(await subscribeUser())
                     setting.receivePush = true;
-                }
             }
         }
 
@@ -731,7 +730,7 @@ async function subscribeUser() {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted'){
         alert('알림 권한을 허용해야 합니다.');
-        throw new Error('알림 권한 차단');
+        return false;
     }
 
     const sub = await reg.pushManager.subscribe({
