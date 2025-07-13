@@ -1,14 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>차량·배차목록</title>
+        <title>페이지 이전 안내</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
-        <script src="./index.js?10" defer></script>
-        <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
         <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
-        <link rel="icon" href="./favicon.png" />
-        <link rel="manifest" href="./manifest.json">
         <style>
             *{
                 font-family: 'Pretendard';
@@ -18,395 +14,39 @@
                 margin: 0;
                 user-select: none;
             }
-            #date{
-                position: absolute;
-                width: 2.4em;
-                height: 2.4em;
-                top: 0.9em;
-                margin-left: calc(50% + 8.5em - 2px - 2.4em - 2.95em);
-                line-height: 2.3em;
-                font-size: 1.2em;
-                text-align: center;
-                border-radius: 1.2em;
-                border: 1px solid #CCC;
-                z-index: 2;
-                cursor: pointer;
-            }
-            #settingbutton{
-                position: absolute;
-                width: 2.4em;
-                height: 2.4em;
-                top: 0.9em;
-                margin-left: calc(50% + 8.5em - 2px - 2.4em);
-                line-height: 2.3em;
-                font-size: 1.2em;
-                text-align: center;
-                border-radius: 1.2em;
-                border: 1px solid #CCC;
-                z-index: 2;
-                cursor: pointer;
-            }
-            #dateselector{
-                position: absolute;
-                width: 14em;
-                top: 0.9em;
-                margin-left: calc(50% - 7em);
-                line-height: 2em;
-                font-size: 1.2em;
-                text-align: center;
-                border-radius: 1.2em;
-                border: 1px solid #CCC;
-                background-color: #FFF;
-                z-index: 5;
-                padding-top: 0.3em;
-                padding-bottom: 0.1em;
-                display: none;
-            }
-            #setting{
-                position: absolute;
-                width: 12em;
-                top: 0.9em;
-                margin-left: calc(50% - 7em);
-                line-height: 2em;
-                font-size: 1.2em;
-                text-align: left;
-                border-radius: 1.2em;
-                border: 1px solid #CCC;
-                background-color: #FFF;
-                z-index: 5;
-                padding-top: 0.7em;
-                padding-bottom: 0.3em;
-                padding-left: 1em;
-                padding-right: 1em;
-                display: none;
-            }
-            .setting_click{
-                color: #1746bd;
-                border-bottom: #1746bd 1px solid;
-                cursor: pointer;
-            }
-            #login{
-                position: absolute;
-                width: 14em;
-                top: 0.9em;
-                margin-left: calc(50% - 7em);
-                font-size: 1.2em;
-                line-height: 1.2em;
-                text-align: center;
-                border-radius: 1.2em;
-                border: 1px solid #CCC;
-                background-color: #FFF;
-                z-index: 5;
-                padding-top: 0.3em;
-                padding-bottom: 0.3em;
-                display: none;
-            }
-            #loginform > .logininput{
-                font-size: 1.2em;
-                border-radius: 0.2em;
-                width: calc(100% - 2em - 2px);
-                margin-top: 0.4em;
-                height: 1.6em;
-                border: 1px solid #CCC;
-                text-align: center;
-            }
-            #loginform > #submit{
-                font-size: 1em;
-                border-radius: 0.2em;
-                width: calc(100% - 2em - 2px);
-                margin-top: 1em;
-                margin-bottom: 0.5em;
-                height: 1.6em;
-                border: 1px solid #CCC;
-                text-align: center;
-            }
-            #blur{
-                position: fixed;
-                z-index: 3;
-                width: 100vw;
-                height: 100vh;
-                top: 0;
-                left: 0;
-                backdrop-filter: blur(3px);
-                background-color: rgba(0, 0, 0, 0.5);
-                display: none;
-                color: #FFF;
-                text-align: center;
-            }
-            #form{
-                width: 100vw;
-                height: 4.2em;
-                position: absolute;
-                top: 1.1em;
-                left: 0;
-            }
-            #form > input{
-                width: 11em;
-                height: 2.4em;
-                font-size: 1.2em;
-                text-align: center;
-                border-radius: 1.2em;
-                border: 1px solid #CCC;
-                margin-left: calc(50% - 8.5em);
-                padding: 0;
-            }
-            #busdetails{
-                position: absolute;
-                width: calc(100% - 4em);
-                margin-left: calc(2em - 2px);
-                max-height: calc(100vh - 16em);
-                overflow-y: auto;
-                top: 6em;
-                line-height: 1.2em;
-                border-radius: 0.2em;
-                border: 1px solid #CCC;
-                border-bottom: 0.2em solid #CCC;
-                background-color: #FFF;
-                z-index: 5;
-                padding-top: 0.3em;
-                padding-bottom: 0.3em;
-                display: none;
-            }
-            #busdetails > #number{
-                font-size: 2.5em;
-                margin-top: 0.4em;
-                margin-left: 0.4em;
-                width: 3.6em;
-                height: 1em;
-            }
-            #busdetails > .description{
-                width: calc(100% - 2em);
-                border-top: 1px solid #CCC;
-                margin-left: 1em;
-                padding-top: 0.9em;
-                margin-bottom: 0.9em;
+            body{
+                padding: 1em;
                 line-height: 1.6em;
             }
-            #table{
-                width: 100vw;
-                height: calc(100% - 5.1em - 1.5rem);
-                position: absolute;
-                top: 5.1em;
-                left: 0;
-                overflow-y: scroll;
-            }
-            #table > .article{
-                width: calc(100% - 2em);
-                height: 4em;
-                border: 1px solid #CCC;
-                border-bottom: 0.2em solid #CCC;
-                border-radius: 0.2em;
-                margin-left: calc(1em - 2px);
-                margin-bottom: 0.4em;
-                cursor: pointer;
-            }
-            .article > .number{
-                font-size: 2.5em;
-                margin-top: 0.2em;
-                margin-left: 0.5em;
-                width: 3em;
-                float: left;
-            }
-            @media (max-width: 375px) {
-                .article > .number{
-                    margin-left: 0.3em;
-                    width: 2.7em;
-                }
-            }
-            .article > .detail{
-                margin-top: 0.8em;
-            }
-            .article_line{
-                width: fit-content;
-                height: 1.7em;
-                margin-left: calc(1em - 2px);
-                margin-top: 1.7em;
-                padding-right: 2em;
-                cursor: pointer;
-            }
-            .article_line_big{
-                margin-bottom: 1.5em;
-                font-size: 1.2em;
-            }
-            #note{
-                height: auto !important;
-                cursor: none !important;
-            }
-            #note > div{
-                font-size: 0.8em;
-                padding: 0.3em 0.5em 0.3em 0.5em;
-                text-align: center;
-                word-break: keep-all;
-            }
-            #monthHeader{
-                text-align: center;
-                font-size: 1.2em;
-                height: 2.4em;
-                width: 13rem;
-                margin-left: calc(50vw - 6.5rem);
-            }
-            #monthHeader > div{
-                float: left;
-            }
-            .monthSelector{
-                border: 1px solid #CCC;
-                font-size: 1.0rem;
-                width: 1.5rem;
-                margin-top: 0.9em;
-                line-height: 0.9em;
-                border-radius: 1em;
-                cursor: pointer;
-            }
-            #monthTable{
-                width: 100vw;
-                text-align: center;
-            }
-            #monthCalendar{
+            img{
                 width: calc(100vw - 2em);
+                max-width: 300px;
                 border: 1px solid #CCC;
                 border-bottom: 0.2em solid #CCC;
                 border-radius: 0.2em;
-                margin-left: calc(1em - 2px);
-                position: relative;
+                margin-top: 2em;
             }
-            #monthCalendar > div{
-                width: calc(100% / 7);
-                border-bottom: 1px solid #CCC;
-                height: 5em;
-                margin-bottom: -1px;
-                position: absolute;
-            }
-            .monthCell{
-                border-radius: 0.2rem;
-                text-align: left;
-                font-size: 0.8em;
-                margin: 0.2em;
-                margin-right: 0.2em;
-                padding-left: 0.2em;
-            }
-            #helpbutton{
-                position: absolute;
-                z-index: 2;
-                right: 1.5em;
-                bottom: 2.5em;
-                background-color: #17bd35;
-                opacity: 0.5;
-                width: 5em;
-                height: 5em;
-                border-radius: 2.5em;
-                line-height: 1.2em;
-                text-align: center;
-                color: #FFF;
-                cursor: pointer;
-            }
-            #slot2button{
-                position: absolute;
-                z-index: 2;
-                right: 1.5em;
-                bottom: 8em;
-                background-color: #bdb217;
-                opacity: 0.5;
-                width: 5em;
-                height: 5em;
-                border-radius: 2.5em;
-                line-height: 1.2em;
-                text-align: center;
-                color: #FFF;
-                cursor: pointer;
-            }
-            .highlight{
-                animation-name: highlight;
-                animation-duration: 4s;
-            }
-            @keyframes highlight{
-                from{
-                    background-color: #93d6ff;
-                }
-                40%{
-                    background-color: #93d6ff;
-                }
-                to{
-                    background-color: #FFF;
-                }
-            }
-            #footer{
-                position: fixed;
-                bottom: 0;
-                width: 100%;
-                height: 1.5rem;
-                line-height: 1.5rem;
-                font-size: 0.8em;
-                text-align: center;
-            }
-            #darkmode{
-                display: none;
-                position: absolute;
-                z-index: 10;
-                width: 100%;
-                height: 100%;
-                backdrop-filter: invert(0.9) hue-rotate(180deg);
-                pointer-events: none;
+            hr{
+                background: #CCC;
+                height: 1px;
+                border: 0;
             }
         </style>
     </head>
     <body>
-        <div id="date" onclick="schedules('new')">
-            <span style="font-size:1rem">배차</span>
-        </div>
-        <div id="settingbutton" onclick="openSetting()">
-            <span style="font-size:1rem">설정</span>
-        </div>
-        <div id="dateselector">
-        </div>
-        <div id="login">
-            <div id="logincoment" style="font-size: 0.8em; line-height: 2em; margin-top: 0.3em">인트라넷 로그인이 필요합니다.</div>
-            <form id="loginform" onsubmit="trylogin()">
-                <input id="id" class="logininput" type="text" placeholder="ID" required />
-                <input id="pw" class="logininput" type="password" placeholder="비밀번호" required />
-                <input id="submit" type="submit" value="로그인" />
-            </form>
-        </div>
-        <div id="setting">
-            자동 검색 - <span id="setting_autoSearch" class="setting_click" onclick="editSetting('click', 'autoSearch')"></span><br>
-            <div style="font-size: 0.8em; line-height: 1.4em;">
-                배차표를 볼 때 지정한 차량이나 이름부터 바로 보이도록 합니다.<p/>
-            </div>
-            자동 로그인 - <span id="setting_autoLogin" class="setting_click" onclick="editSetting('click', 'autoLogin')"></span><br>
-            <div style="font-size: 0.8em; line-height: 1.4em;">
-                한번 로그인하고 나면 같은 기기에서는 로그인 과정을 생략합니다.<p/>
-            </div>
-            푸시알림 수신 - <span id="setting_receivePush" class="setting_click" onclick="editSetting('click', 'receivePush')"></span><br>
-            <div style="font-size: 0.8em; line-height: 1.4em;">
-                배차표가 갱신되면 알림을 수신받습니다.<p/>
-            </div>
-        </div>
-        <div id="blur" onclick="cancelmodal()">
-            <div style="position: absolute; bottom: 6em; width: 100%;">
-                창을 닫으려면 회색 부분 아무데나 누르세요.
-            </div>
-        </div>
-        <div id="form">
-            <input id="search" type="text" placeholder="찾기(이름, 차번)" />
-        </div>
-        <div id="table">
-        </div>
-        <div id="busdetails">
-        </div>
-        <div id="slot2button" onclick="window.open('./slot2.jpg');">
-            <div style="margin-top: 1.2em;">
-                2차고지<br>
-                주차자리
-            </div>
-        </div>
-        <div id="helpbutton" onclick="window.open('./help');">
-            <div style="margin-top: 1em;">
-                <span style="font-size: 3em;">?</span><br>
-                도움말
-            </div>
-        </div>
-        <div id="footer">
-        </div>
-        <div id="darkmode">
-        </div>
+        <p style="font-size: 1.2em; font-weight: 600;">페이지 이전 안내</p>
+        <p>향후 개선의 용이성과 신기능 추가를 위해 배차 및 차량번호 페이지를 <a href="https://wjbuses.setcookie.kr/">https://wjbuses.setcookie.kr/</a>로 이전했습니다. 기존에 사용하던 현재 주소에서의 페이지 제공은 중단하게 되었으니, 앞으로 새 주소에서 더 편리하게 이용해주시길 부탁드립니다.</p>
+        <br>
+        <hr>
+        <p style="font-size: 1.2em; font-weight: 600;">새로운 기능</p>
+        <p>홈 화면에 추가:<br>
+            <img src="./help/11.webp" />
+            <br>휴대폰에서 "홈 화면에 추가" 기능을 사용하면 앱을 설치한 것처럼 바로 사용할 수 있습니다.
+        </p>
+        <p>푸시알림 수신:<br>
+            <img src="./help/10.webp?2" />
+            <br>활성화 "☑"되어 있으면 배차표가 갱신될 때 알림을 수신받을 수 있습니다.
+        </p>
+        <p style="color:rgb(3, 171, 0)">상세한 내용은 이전된 페이지에서 "도움말"을 확인해 주세요.</p>
     </body>
 </html>
