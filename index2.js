@@ -83,6 +83,7 @@ function schedules(req) {
             $('#date').html('...');
             fetch(api, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     "Content-Type": "application/json; charset=utf-8"
                 },
@@ -137,6 +138,7 @@ function schedules(req) {
 
         fetch(api, {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 "Content-Type": "application/json; charset=utf-8"
             },
@@ -292,6 +294,7 @@ function tryLogin() {
 
     fetch(api, {
         method: 'POST',
+        credentials: 'include',
         headers: {
             "Content-Type": "application/json; charset=utf-8"
         },
@@ -333,6 +336,7 @@ function tryLogin() {
 function logout(){
     fetch(api, {
         method: 'POST',
+        credentials: 'include',
         headers: {
             "Content-Type": "application/json; charset=utf-8"
         },
@@ -384,6 +388,7 @@ function showScheduleLog(date) {
 
     fetch(api, {
         method: 'POST',
+        credentials: 'include',
         headers: {
             "Content-Type": "application/json; charset=utf-8"
         },
@@ -695,6 +700,7 @@ $('#search').on('change keyup paste', function () {
 function tryHashLogin() {
     fetch(api, {
         method: 'POST',
+        credentials: 'include',
         headers: {
             "Content-Type": "application/json; charset=utf-8"
         },
@@ -806,6 +812,7 @@ async function subscribeUser() {
     const subs = JSON.parse(JSON.stringify(sub));
     const res = await fetch(api, {
         method: 'POST',
+        credentials: 'include',
         headers: {"Content-Type": "application/json; charset=utf-8"},
         body: `{
             "act": "pushSubscribe",
@@ -830,6 +837,7 @@ async function unsubscribeUser() {
         await sub.unsubscribe();
         const res = await fetch(api, {
             method: 'POST',
+            credentials: 'include',
             headers: {"Content-Type": "application/json; charset=utf-8"},
             body: `{"act": "pushUnsubscribe", "endpoint": "${subs.endpoint}"}`
         });
